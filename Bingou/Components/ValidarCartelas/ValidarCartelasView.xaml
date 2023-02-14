@@ -26,7 +26,7 @@
                         FontSize="16"
                         FontWeight="Bold"
                         Foreground="#FFF30000"
-                        Text="0" />
+                        Text="{Binding QuantidadeValidados}" />
                 </TextBlock>
                 <StackPanel Orientation="Horizontal">
                     <Label
@@ -49,14 +49,14 @@
                         <Run Text="Para validar uma cartela digite seu número e tecle ENTER." />
                     </TextBlock>
                 </Border>
-                <Button Content="Zerar as cartelas validas"/>
+                <Button Content="Zerar as cartelas validas" Command="{Binding LimparCommand}"/>
             </StackPanel>
             <DataGrid
                 Grid.Column="1"
                 Width="120"
                 Height="240"
                 HorizontalAlignment="Center"
-                ItemsSource="{Binding DataGridValidados.ItemsSource}" />
+                ItemsSource="{Binding DataGridValidados.ItemsSource}"/>
 
         </Grid>
     </Grid>

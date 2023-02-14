@@ -1,6 +1,8 @@
-﻿using Bingou.ViewModel;
+﻿using Bingou.Database;
+using Bingou.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,8 +14,19 @@ namespace Bingou.Components.ValidarCartelas
 {
     internal class ValidarCartelasViewModel : BaseViewModel
     {
-        private int numeroParaValidar;
-        public int NumeroParaValidar
+        private int quantidadeValidados;
+        public int QuantidadeValidados
+        {
+            get { return quantidadeValidados; }
+            set
+            {
+                quantidadeValidados = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string numeroParaValidar;
+        public string NumeroParaValidar
         {
             get { return numeroParaValidar; }
             set
@@ -37,8 +50,13 @@ namespace Bingou.Components.ValidarCartelas
         public ValidarCartelasViewModel()
         {
             ValidarCommand = new ValidarCommand(this);
+            LimparCommand = new LimparCommand(this);
+
+            DBConnect db = new DBConnect();
+            DataGridValidados.ItemsSource = db.CarregarTabelaValidacoes().DefaultView;
         }
 
         public ICommand ValidarCommand { get; }
+        public ICommand LimparCommand { get; }
     }
 }

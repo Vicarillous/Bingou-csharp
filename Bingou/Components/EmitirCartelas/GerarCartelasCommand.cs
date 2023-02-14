@@ -9,6 +9,7 @@ namespace Bingou.Components.EmitirCartelas
     internal class GerarCartelasCommand : CommandBase
     {
         private readonly EmitirCartelasViewModel emitirCartelasViewModel;
+        private readonly DBConnect db = new DBConnect();
 
         public GerarCartelasCommand(EmitirCartelasViewModel emitirCartelasViewModel)
         {
@@ -18,15 +19,11 @@ namespace Bingou.Components.EmitirCartelas
         public override void Execute(object parameter)
         {
             Trace.WriteLine("Gerando cartelas...");
-            using (SQLiteConnection conn = DBConnect.CreateConnection())
-            {
-                SQLiteCommand dropCartelasCmd = conn.CreateCommand();
-                dropCartelasCmd.CommandText = "DROP TABLE IF EXISTS Cartelas";
-                dropCartelasCmd.ExecuteNonQuery();
-                DBConnect.CreateTable(conn);
+                db.ExcluirTabelaCartelas();
+                db.CriarTabelaCartelas();
 
                 int lastId = 0;
-                try
+                /*try
                 {
                     SQLiteCommand lastIdCmd = conn.CreateCommand();
                     lastIdCmd.CommandText = "SELECT seq FROM sqlite_sequence WHERE name='Cartelas'";
@@ -35,11 +32,11 @@ namespace Bingou.Components.EmitirCartelas
                 catch (Exception e)
                 {
                     //Falhe silenciosamente
-                }
+                }*/
 
-                using (SQLiteTransaction sqlTransaction = conn.BeginTransaction())
+                using (SQLiteTransaction sqlTransaction = db.Conn.BeginTransaction())
                 {
-                    using (SQLiteCommand inserirCmd = new SQLiteCommand(conn))
+                    using (SQLiteCommand inserirCmd = new SQLiteCommand(db.Conn))
                     {
                         SQLiteParameter numeros = new SQLiteParameter();
 
@@ -58,7 +55,6 @@ namespace Bingou.Components.EmitirCartelas
 
                     }
                 }
-            }
         }
 
         private string GerarCartela(Random rd)

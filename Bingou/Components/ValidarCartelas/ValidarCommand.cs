@@ -1,4 +1,5 @@
 ﻿using Bingou.Commands;
+using Bingou.Components.EmitirCartelas;
 using Bingou.Database;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Bingou.Components.ValidarCartelas
     internal class ValidarCommand : CommandBase
     {
         private readonly ValidarCartelasViewModel viewModel;
+        private DBConnect db = new DBConnect();
 
         public ValidarCommand(ValidarCartelasViewModel viewModel)
         {
@@ -23,73 +25,100 @@ namespace Bingou.Components.ValidarCartelas
 
         public override void Execute(object parameter)
         {
-            using (SQLiteConnection conn = DBConnect.CreateConnection())
+            string numeroParaValidar = viewModel.NumeroParaValidar.ToString();
+            db.CriarTabelaValidacoes();
+
+            if(viewModel.NumeroParaValidar == null || viewModel.NumeroParaValidar.Equals(0))
             {
-                CriarTabelaValidacao(conn);
-
-                InserirNumero(conn);
-
-                CarregarTabelaValidacao(conn);
+                MessageBox.Show("Digite um número para validar.");
+                return;
             }
-        }
 
-        private void CarregarTabelaValidacao(SQLiteConnection conn)
-        {
-            Trace.WriteLine("aa");
-            using (SQLiteCommand cmd = conn.CreateCommand())
+            if (numeroParaValidar.Contains(" "))
             {
-                cmd.CommandText = "SELECT * FROM Validacoes";
-                SQLiteDataAdapter adapter = new SQLiteDataAdapter(cmd);
-                DataTable dt = new DataTable("Validacoes");
-                adapter.Fill(dt);
-                viewModel.DataGridValidados.ItemsSource = dt.DefaultView;
+                MessageBox.Show("Remova os espaços.");
+                return;
             }
-        }
 
-        private void InserirNumero(SQLiteConnection conn)
-        {
-            using (SQLiteCommand inserirValidacaoCmd = conn.CreateCommand())
+            if (numeroParaValidar.Contains("-"))
             {
                 try
                 {
-                    inserirValidacaoCmd.CommandText = string.Format("INSERT OR FAIL INTO Validacoes (id) VALUES ({0})", viewModel.NumeroParaValidar);
-                    inserirValidacaoCmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
+                    InserirIntervaloDeNumeros(numeroParaValidar);
+                } catch (Exception ex)
                 {
-                    if (ex is SQLiteException)
-                    {
-                        ExcluirNumero(conn);
-                    }
-                    else
-                    {
-                        MessageBox.Show(ex.ToString());
-                    }
+
                 }
             }
-        }
-
-        private void ExcluirNumero(SQLiteConnection conn)
-        {
-            MessageBoxResult result = MessageBox.Show("Cartela já validada. Deseja excluidar da validação?", "Exclusão de cartela", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
+            else
             {
-                Validacoes.ExcluirNumero(viewModel.NumeroParaValidar);
-                using (SQLiteCommand cmd = conn.CreateCommand())
+                InserirNumero();
+            }
+
+            viewModel.QuantidadeValidados = Convert.ToInt32(db.SelecionarQuantidadeValidados());
+            viewModel.NumeroParaValidar = null;
+            viewModel.DataGridValidados.ItemsSource = db.CarregarTabelaValidacoes().DefaultView;
+        }
+
+        private void InserirIntervaloDeNumeros(string numeroParaValidar)
+        {
+            int numeroMin;
+            int numeroMax;
+
+            String[] separador = { "-" };
+            String[] numeroParaValidarSeparado = numeroParaValidar.Split(separador, 2, StringSplitOptions.RemoveEmptyEntries);
+
+            numeroMin = Convert.ToInt32(numeroParaValidarSeparado[0]);
+            numeroMax = Convert.ToInt32(numeroParaValidarSeparado[1]);
+
+            using (SQLiteTransaction sqlTransaction = db.Conn.BeginTransaction())
+            {
+                using (SQLiteCommand inserirCmd = new SQLiteCommand(db.Conn))
                 {
-                    cmd.CommandText = string.Format("DELETE FROM Validacoes WHERE id = {0}", viewModel.NumeroParaValidar);
-                    cmd.ExecuteNonQuery();
+                    SQLiteParameter numeros = new SQLiteParameter();
+
+                    inserirCmd.CommandText = "INSERT OR FAIL INTO Validacoes (id) VALUES (?)";
+                    inserirCmd.Parameters.Add(numeros);
+
+                    for (int i = numeroMin; i <= numeroMax; i++)
+                    {
+                        try
+                        {
+                            numeros.Value = i;
+                            inserirCmd.ExecuteNonQuery();
+                        } catch (Exception ex)
+                        {
+
+                        }
+                        
+                    }
+                    sqlTransaction.Commit();
                 }
             }
         }
 
-        public void CriarTabelaValidacao(SQLiteConnection conn)
+        private void InserirNumero()
         {
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS Validacoes (id INTEGER PRIMARY KEY NOT NULL, FOREIGN KEY(id) REFERENCES Cartelas(id));";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
-            sqlite_cmd.ExecuteNonQuery();
+
+            try
+            {
+                db.InserirValidacao(Convert.ToInt32(viewModel.NumeroParaValidar));
+            }
+            catch (Exception ex)
+            {
+                if (ex is SQLiteException)
+                {
+                    MessageBoxResult result = MessageBox.Show("Cartela já validada. Deseja excluidar da validação?", "Exclusão de cartela", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        db.ExcluirValidacao(Convert.ToInt32(viewModel.NumeroParaValidar));
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+            }
         }
     }
 }

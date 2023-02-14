@@ -5,48 +5,120 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Data.Entity;
+using System.Windows;
+using System.Data;
 
 namespace Bingou.Database
 {
     public class DBConnect
     {
-        public static SQLiteConnection CreateConnection()
+        private SQLiteConnection conn;
+
+        public SQLiteConnection Conn
         {
-            SQLiteConnection sqlite_conn;
+            get { return conn; }
+        }
+
+        public DBConnect()
+        {
+            conn = CreateConnection();
+        }
+        public SQLiteConnection CreateConnection()
+        {
+            SQLiteConnection cmd;
             // Create a new database connection:
-            sqlite_conn = new SQLiteConnection("Data Source=database.db; Version = 3; New = True; Compress = True;");
+            cmd = new SQLiteConnection("Data Source=database.db; Version = 3; New = True; Compress = True;");
             // Open the connection:
             try
             {
-                sqlite_conn.Open();
+                cmd.Open();
             }
             catch (Exception e)
             {
-                //Falhe silenciosamente
+                MessageBox.Show(e.Message);
             }
-            return sqlite_conn;
+            return cmd;
         }
 
-        public static void CreateTable(SQLiteConnection conn)
+        public void CriarTabelaCartelas()
         {
-            SQLiteCommand sqlite_cmd;
-            string Createsql = "CREATE TABLE IF NOT EXISTS Cartelas (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, numeros TEXT NOT NULL)";
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = Createsql;
+            SQLiteCommand cmd;
+            cmd = conn.CreateCommand();
+            string cmdText = "CREATE TABLE IF NOT EXISTS Cartelas (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, numeros TEXT NOT NULL)";
+            cmd.CommandText = cmdText;
+            cmd.ExecuteNonQuery();
+        }
+
+        #region EmitirCartelas
+        public void ExcluirTabelaCartelas()
+        {
+            SQLiteCommand cmd = conn.CreateCommand();
+            cmd.CommandText = "DROP TABLE IF EXISTS Cartelas";
+            cmd.ExecuteNonQuery();
+        }
+
+        public object VerificarCartelasRepetidas()
+        {
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = "SELECT count(*) FROM Cartelas WHERE numeros IN (SELECT numeros FROM Cartelas GROUP BY numeros HAVING COUNT(*) > 1)";
+            cmd.CommandText = cmdText;
+
+            return cmd.ExecuteScalar();
+        }
+        #endregion
+
+        #region ValidarCartelas
+        public void CriarTabelaValidacoes()
+        {
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = "CREATE TABLE IF NOT EXISTS Validacoes (id INTEGER PRIMARY KEY NOT NULL, FOREIGN KEY(id) REFERENCES Cartelas(id));";
+            cmd.CommandText = cmdText;
+            cmd.ExecuteNonQuery();
+        }
+
+        public void InserirValidacao(int valor)
+        {
+            SQLiteCommand sqlite_cmd = conn.CreateCommand();
+            string cmdText = string.Format("INSERT OR FAIL INTO Validacoes (id) VALUES ({0})", valor);
+            sqlite_cmd.CommandText = cmdText;
             sqlite_cmd.ExecuteNonQuery();
         }
 
-        public static void InsertData(SQLiteConnection conn, string cmd_text)
+        public void ExcluirValidacao(int valor)
         {
-            SQLiteCommand sqlite_cmd;
-            sqlite_cmd = conn.CreateCommand();
-            sqlite_cmd.CommandText = cmd_text;
-            sqlite_cmd.ExecuteNonQuery();
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = string.Format("DELETE FROM Validacoes WHERE id = {0}", valor);
+            cmd.CommandText = cmdText;
+            cmd.ExecuteNonQuery();
         }
 
-        public static void ReadData(SQLiteConnection conn, string cmd_text)
+        public void ExcluirTodasValidacoes()
         {
-            throw new NotImplementedException();
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = "DELETE FROM Validacoes";
+            cmd.CommandText = cmdText;
+            cmd.ExecuteNonQuery();
         }
+
+        public DataTable CarregarTabelaValidacoes()
+        {
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = "SELECT * FROM Validacoes";
+            cmd.CommandText = cmdText;
+            SQLiteDataAdapter adapter = new SQLiteDataAdapter(cmd);
+            DataTable dt = new DataTable("Validacoes");
+            adapter.Fill(dt);
+
+            return dt;
+        }
+
+        public object SelecionarQuantidadeValidados()
+        {
+            SQLiteCommand cmd = conn.CreateCommand();
+            string cmdText = "SELECT COUNT(*) FROM Validacoes";
+            cmd.CommandText = cmdText;
+            return cmd.ExecuteScalar();
+        }
+        #endregion
     }
 }

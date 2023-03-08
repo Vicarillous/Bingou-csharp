@@ -46,7 +46,8 @@
                 </StackPanel>
                 <Border Padding="4,4,4,4" Margin="4,4,4,4" BorderBrush="#FF848484" BorderThickness="1,1,1,1">
                     <TextBlock TextWrapping="Wrap">
-                        <Run Text="Para validar uma cartela digite seu número e tecle ENTER." />
+                        <Run Text="Para validar uma cartela digite seu número e tecle ENTER. 
+                             Para validar um grupo de cartelas, digite o número da cartela inicial e final separados por um hífem. Ex: 30-47" />
                     </TextBlock>
                 </Border>
                 <Button Content="Zerar as cartelas validas" Command="{Binding LimparCommand}"/>
@@ -56,7 +57,7 @@
                 Width="120"
                 Height="240"
                 HorizontalAlignment="Center"
-                ItemsSource="{Binding DataGridValidados.ItemsSource}"/>
+                ItemsSource="{Binding DataGridValidados.ItemsSource}" Focusable="False" IsEnabled="False"/>
 
         </Grid>
     </Grid>

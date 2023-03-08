@@ -25,19 +25,19 @@ namespace Bingou.Database
         }
         public SQLiteConnection CreateConnection()
         {
-            SQLiteConnection cmd;
+            SQLiteConnection conn;
             // Create a new database connection:
-            cmd = new SQLiteConnection("Data Source=database.db; Version = 3; New = True; Compress = True;");
+            conn = new SQLiteConnection("Data Source=database.db; Version = 3; New = True; Compress = True;");
             // Open the connection:
             try
             {
-                cmd.Open();
+                conn.Open();
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
             }
-            return cmd;
+            return conn;
         }
 
         public void CriarTabelaCartelas()

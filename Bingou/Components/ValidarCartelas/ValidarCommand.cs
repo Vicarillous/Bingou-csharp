@@ -26,7 +26,6 @@ namespace Bingou.Components.ValidarCartelas
         public override void Execute(object parameter)
         {
             string numeroParaValidar = viewModel.NumeroParaValidar.ToString();
-            db.CriarTabelaValidacoes();
 
             if(viewModel.NumeroParaValidar == null || viewModel.NumeroParaValidar.Equals(0))
             {

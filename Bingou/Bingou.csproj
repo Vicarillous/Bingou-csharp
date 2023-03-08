@@ -115,6 +115,9 @@
     <Compile Include="Components\EmitirCartelas\EmitirCartelasViewModel.cs" />
     <Compile Include="Components\EmitirCartelas\GerarCartelasCommand.cs" />
     <Compile Include="Components\EmitirCartelas\VerificarCartelasRepetidasCommand.cs" />
+    <Compile Include="Components\SortearCartelas\SortearCartelasView.xaml.cs">
+      <DependentUpon>SortearCartelasView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Components\ValidarCartelas\LimparCommand.cs" />
     <Compile Include="Components\ValidarCartelas\ValidarCartelasView.xaml.cs">
       <DependentUpon>ValidarCartelasView.xaml</DependentUpon>
@@ -126,6 +129,10 @@
     <Compile Include="Components\EmitirCartelas\EmitirCartelasView.xaml.cs">
       <DependentUpon>EmitirCartelasView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Components\SortearCartelas\SortearCartelasView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Components\ValidarCartelas\ValidarCartelasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

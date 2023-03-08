@@ -53,6 +53,7 @@ namespace Bingou.Components.ValidarCartelas
             LimparCommand = new LimparCommand(this);
 
             DBConnect db = new DBConnect();
+            db.CriarTabelaValidacoes();
             DataGridValidados.ItemsSource = db.CarregarTabelaValidacoes().DefaultView;
         }
 

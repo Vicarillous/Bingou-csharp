@@ -1,4 +1,5 @@
-﻿using Bingou.ViewModel;
+﻿using Bingou.Database;
+using Bingou.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,9 @@ namespace Bingou.Components.EmitirCartelas
         {
             GerarCartelasCommand = new GerarCartelasCommand(this);
             VerificarCartelasRepetidasCommand = new VerificarCartelasRepetidasCommand(this);
+
+            DBConnect db = new DBConnect();
+            db.CriarTabelaCartelas();
         }
 
         public ICommand GerarCartelasCommand { get; }
